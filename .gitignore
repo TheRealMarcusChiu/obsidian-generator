@@ -1,0 +1,19 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# Test fixtures / local artifacts
+uploads/
+*.zim
+*.zip
+
+# Logs
+*.log
+
+# Thumbnails
+.thumbnail

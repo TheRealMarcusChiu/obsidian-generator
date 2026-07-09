@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500;1,6..72,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/turndown@7/dist/turndown.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/turndown-plugin-gfm@1.0.2/dist/turndown-plugin-gfm.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fzstd@0.1.1/umd/index.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fflate@0.8.2/umd/index.js"></script>
+<script src="zim.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #0f0c09; }
+  ::selection { background: #d8a942; color: #0f0c09; }
+  a { color: #d8a942; }
+  a:hover { color: #e6bb58; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #2a2218; border-radius: 5px; border: 2px solid #0f0c09; }
+  ::-webkit-scrollbar-thumb:hover { background: #3a2f1a; }
+  @keyframes riseIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes scan { 0% { transform: translateX(-110%); } 100% { transform: translateX(420%); } }
+  input, textarea, select, button { font-family: 'JetBrains Mono', monospace; }
+  .fld { background: #14110b; border: 1px solid #2a2218; border-radius: 6px; color: #ece1cf; font-size: 13px; padding: 10px 13px; outline: none; transition: border-color 0.2s ease; }
+  .fld:focus { border-color: #d8a942; }
+  .fld::placeholder { color: #463f33; }
+  .opt:hover { background: #1a150e !important; color: #ece1cf !important; box-shadow: inset 2px 0 0 #d8a942 !important; }
+  /* rendered note */
+  .prose { font-family: 'Newsreader', Georgia, serif; font-size: 18px; line-height: 1.82; color: #cdc1ab; animation: riseIn 0.4s ease both; }
+  .prose > *:first-child { margin-top: 0; }
+  .prose p { margin: 0 0 1.4em; text-wrap: pretty; }
+  .prose h1, .prose h2 { font-family: 'Newsreader', Georgia, serif; font-style: italic; font-weight: 500; color: #ece1cf; font-size: 29px; line-height: 1.18; letter-spacing: -0.01em; margin: 1.9em 0 0.55em; }
+  .prose h3, .prose h4 { font-family: 'Newsreader', Georgia, serif; font-style: italic; font-weight: 500; color: #ece1cf; font-size: 22px; margin: 1.6em 0 0.5em; }
+  .prose a { color: #d8a942; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgba(216,169,66,0.4); }
+  .prose a:hover { text-decoration-color: #d8a942; }
+  .wl-missing { color: #8c8170; border-bottom: 1px dashed rgba(140,129,112,0.55); }
+  .prose strong { color: #ece1cf; font-weight: 600; }
+  .prose blockquote { margin: 1.6em 0; padding: 0.1em 0 0.1em 1.4em; border-left: 2px solid #d8a942; color: #a99e88; font-style: italic; }
+  .prose ul, .prose ol { margin: 0 0 1.4em; padding-left: 1.3em; }
+  .prose li { margin: 0.4em 0; }
+  .prose li::marker { color: #b78f3a; }
+  .prose code { font-family: 'JetBrains Mono', monospace; font-size: 0.78em; background: #1c1710; border: 1px solid #2a2218; border-radius: 4px; padding: 2px 6px; color: #d8a942; }
+  .prose pre { background: #14110b; border: 1px solid #2a2218; border-radius: 6px; padding: 18px; overflow-x: auto; margin: 0 0 1.4em; }
+  .prose pre code { background: none; border: none; padding: 0; color: #cdc1ab; }
+  .prose hr { border: none; border-top: 1px solid #2a2218; margin: 2.6em 0; }
+  .prose img { max-width: 100%; height: auto; border-radius: 6px; }
+  .prose table { border-collapse: collapse; margin: 0 0 1.4em; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; max-width: 100%; display: block; overflow-x: auto; }
+  .prose th, .prose td { border: 1px solid #2a2218; padding: 7px 12px; text-align: left; }
+  .prose th { color: #ece1cf; }
+</style>
+</helmet>
+
+<div style="background: #0f0c09; min-height: 100vh; color: #ece1cf; font-family: 'JetBrains Mono', monospace; -webkit-font-smoothing: antialiased;">
+
+  <!-- ============ LANDING ============ -->
+  <sc-if value="{{ isLanding }}" hint-placeholder-val="{{ true }}">
+  <div data-screen-label="Landing" style="max-width: 980px; margin: 0 auto; padding: 0 40px 90px;">
+
+    <header style="padding: 92px 0 54px;">
+      <div style="font-size: 12px; letter-spacing: 0.34em; color: #d8a942; text-transform: uppercase; margin-bottom: 36px;">ZIM archive → Obsidian vault</div>
+      <h1 style="font-family: 'Newsreader', Georgia, serif; font-style: italic; font-weight: 500; color: #ece1cf; font-size: clamp(46px, 7.2vw, 92px); line-height: 1.0; letter-spacing: -0.015em; text-wrap: pretty;">An entire encyclopedia, rewritten as a vault.</h1>
+      <p style="margin-top: 30px; max-width: 62ch; font-size: 14px; line-height: 1.85; color: #8c8170;">Drop any Kiwix .zim archive — Wikipedia, Stack Exchange, wikis — and it is parsed, decompressed and rewritten as Markdown notes with [[wikilinks]], entirely inside this tab. Nothing is ever uploaded.</p>
+    </header>
+
+    <sc-if value="{{ hasError }}" hint-placeholder-val="{{ false }}">
+      <div style="margin-bottom: 22px; padding: 14px 17px; background: #2a1410; border: 1px solid #6b2c20; border-radius: 7px; color: #e7b0a4; font-size: 13px; line-height: 1.7;">{{ errorMsg }}</div>
+    </sc-if>
+
+    <div onClick="{{ pickFile }}" onDragOver="{{ onDragOver }}" onDragLeave="{{ onDragLeave }}" onDrop="{{ onDrop }}" style="position: relative; border: 1px dashed #3a2f1a; border-radius: 10px; background-color: #120e09; background-image: repeating-linear-gradient(135deg, #14100a 0px, #14100a 11px, #17120c 11px, #17120c 22px); padding: 78px 40px; text-align: center; cursor: pointer; transition: border-color 0.2s ease;" style-hover="border-color: #d8a942;">
+      <sc-if value="{{ dragOver }}" hint-placeholder-val="{{ false }}">
+        <div style="position: absolute; inset: 0; border-radius: 10px; box-shadow: 0 0 0 1.5px #d8a942, 0 22px 70px -22px rgba(216,169,66,0.55); pointer-events: none;"></div>
+      </sc-if>
+      <div style="font-family: 'Newsreader', Georgia, serif; font-style: italic; font-size: 62px; line-height: 1; color: rgba(216,169,66,0.3);">.zim</div>
+      <div style="margin-top: 22px; font-family: 'Newsreader', Georgia, serif; font-style: italic; font-size: 27px; color: #ece1cf;">Drop your archive here</div>
+      <div style="margin-top: 13px; font-size: 11.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #5f574a;">or click to browse — read locally, never uploaded</div>
+    </div>
+    <input type="file" accept=".zim" ref="{{ fileRef }}" onChange="{{ onFilePick }}" style="display: none;">
+
+    <div style="margin-top: 60px; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 22px;">
+      <div style="position: relative; background: #14100b; border: 1px solid #29221a; border-radius: 6px; padding: 26px 24px 24px; overflow: hidden;">
+        <span style="position: absolute; right: 14px; top: 6px; font-family: 'Newsreader', Georgia, serif; font-style: italic; font-weight: 500; font-size: 46px; line-height: 1; color: rgba(216,169,66,0.14);">01</span>
+        <h3 style="font-family: 'Newsreader', Georgia, serif; font-weight: 500; color: #ece1cf; font-size: 21px; line-height: 1.22;">Parsed in the browser</h3>
+        <p style="margin-top: 12px; font-size: 12.5px; line-height: 1.8; color: #8c8170;">The ZIM directory, clusters and blobs are read straight off your disk and decompressed in-tab. No servers, no API calls.</p>
+      </div>
+      <div style="position: relative; background: #14100b; border: 1px solid #29221a; border-radius: 6px; padding: 26px 24px 24px; overflow: hidden;">
+        <span style="position: absolute; right: 14px; top: 6px; font-family: 'Newsreader', Georgia, serif; font-style: italic; font-weight: 500; font-size: 46px; line-height: 1; color: rgba(216,169,66,0.14);">02</span>
+        <h3 style="font-family: 'Newsreader', Georgia, serif; font-weight: 500; color: #ece1cf; font-size: 21px; line-height: 1.22;">Markdown, with wikilinks</h3>
+        <p style="margin-top: 12px; font-size: 12.5px; line-height: 1.8; color: #8c8170;">Every article becomes a note; internal links become [[wikilinks]] Obsidian understands. Images ride along as attachments.</p>
+      </div>
+      <div style="position: relative; background: #14100b; border: 1px solid #29221a; border-radius: 6px; padding: 26px 24px 24px; overflow: hidden;">
+        <span style="position: absolute; right: 14px; top: 6px; font-family: 'Newsreader', Georgia, serif; font-style: italic; font-weight: 500; font-size: 46px; line-height: 1; color: rgba(216,169,66,0.14);">03</span>
+        <h3 style="font-family: 'Newsreader', Georgia, serif; font-weight: 500; color: #ece1cf; font-size: 21px; line-height: 1.22;">Browse, then download</h3>
+        <p style="margin-top: 12px; font-size: 12.5px; line-height: 1.8; color: #8c8170;">Read the vault right here — wikilinks are clickable — then take it home as a zip and open it in Obsidian.</p>
+      </div>
+    </div>
+
+    <footer style="margin-top: 84px; padding-top: 28px; border-top: 1px solid #221c14; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;">
+      <div style="font-size: 11.5px; letter-spacing: 0.18em; text-transform: uppercase; color: #5f574a;">No uploads · No servers · Everything stays on this machine</div>
+      <div style="font-size: 11.5px; letter-spacing: 0.18em; text-transform: uppercase; color: #b78f3a;">zim → obsidian</div>
+    </footer>
+  </div>
+  </sc-if>
+
+  <!-- ============ OPENING ============ -->
+  <sc-if value="{{ isOpening }}" hint-placeholder-val="{{ false }}">
+  <div data-screen-label="Opening" style="max-width: 640px; margin: 0 auto; padding: 24vh 40px 0; text-align: center;">
+    <div style="font-size: 12px; letter-spacing: 0.3em; color: #b78f3a; text-transform: uppercase;">Reading archive</div>
+    <div style="margin-top: 24px; font-family: 'Newsreader', Georgia, serif; font-style: italic; font-weight: 500; font-size: clamp(28px, 4vw, 42px); color: #ece1cf; line-height: 1.15; overflow-wrap: anywhere;">{{ openLabel }}</div>
+    <div style="margin-top: 40px; height: 2px; background: #221c14; border-radius: 1px; overflow: hidden;">
+      <div style="width: 26%; height: 100%; background: #d8a942; animation: scan 1.2s ease-in-out infinite;"></div>
+    </div>
+    <div style="margin-top: 20px; font-size: 11.5px; letter-spacing: 0.18em; text-transform: uppercase; color: #5f574a;">{{ openDetail }}</div>
+  </div>
+  </sc-if>
+
+  <!-- ============ INSPECT ============ -->
+  <sc-if value="{{ isInspect }}" hint-placeholder-val="{{ false }}">
+  <div data-screen-label="Inspect" style="max-width: 860px; margin: 0 auto; padding: 0 40px 110px;">
+
+    <div style="padding: 48px 0 0;">
+      <button type="button" onClick="{{ resetClick }}" style="font-size: 11.5px; letter-spacing: 0.2em; text-transform: uppercase; color: #8c8170; background: transparent; border: none; cursor: pointer; padding: 6px 0;" style-hover="color: #d8a942;">← Choose another file</button>
+    </div>
+
+    <header style="padding: 46px 0 32px; border-bottom: 1px solid #221c14;">
+      <div style="font-size: 12px; letter-spacing: 0.28em; text-transform: uppercase; color: #b78f3a; margin-bottom: 24px;">Ready to convert</div>
+      <h1 style="font-family: 'Newsreader', Georgia, serif; font-style: italic; font-weight: 500; color: #ece1cf; font-size: clamp(36px, 5.4vw, 58px); line-height: 1.05; letter-spacing: -0.015em; text-wrap: pretty; overflow-wrap: anywhere;">{{ zimTitle }}</h1>
+      <sc-if value="{{ hasDesc }}" hint-placeholder-val="{{ false }}">
+        <p style="margin-top: 22px; max-width: 62ch; font-size: 13.5px; line-height: 1.85; color: #8c8170;">{{ zimDesc }}</p>
+      </sc-if>
+    </header>
+
+    <sc-if value="{{ hasError }}" hint-placeholder-val="{{ false }}">
+      <div style="margin-top: 24px; padding: 14px 17px; background: #2a1410; border: 1px solid #6b2c20; border-radius: 7px; color: #e7b0a4; font-size: 13px; line-height: 1.7;">{{ errorMsg }}</div>
+    </sc-if>
+
+    <div style="margin-top: 36px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 22px;">
+      <sc-for list="{{ metaRows }}" as="m" hint-placeholder-count="6">
+        <div style="background: #14100b; border: 1px solid #29221a; border-radius: 6px; padding: 18px 20px;">
+          <div style="font-size: 10.5px; letter-spacing: 0.2em; text-transform: uppercase; color: #5f574a;">{{ m.k }}</div>
+          <div style="margin-top: 10px; font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 22px; color: #ece1cf; overflow-wrap: anywhere;">{{ m.v }}</div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="margin-top: 40px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+      <button type="button" onClick="{{ toggleImages }}" style="{{ imagesBtnStyle }}">{{ imagesLabel }}</button>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <label style="font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #5f574a;">Article limit</label>
+        <input type="text" class="fld" value="{{ maxArticles }}" onChange="{{ onMaxArticles }}" placeholder="all" style="width: 110px;">
+      </div>
+    </div>
+
+    <div style="margin-top: 44px; display: flex; align-items: center; gap: 22px; flex-wrap: wrap;">
+      <button type="button" onClick="{{ startConvert }}" style="background: #d8a942; color: #0f0c09; border: none; border-radius: 7px; padding: 17px 36px; font-size: 12.5px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; cursor: pointer; transition: all 0.18s ease; box-shadow: 0 14px 38px -14px rgba(216,169,66,0.6);" style-hover="background: #e6bb58; transform: translateY(-2px); box-shadow: 0 20px 46px -12px rgba(216,169,66,0.75);">Convert to vault →</button>
+      <div style="font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: #5f574a;">{{ convertHint }}</div>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ============ CONVERTING ============ -->
+  <sc-if value="{{ isConverting }}" hint-placeholder-val="{{ false }}">
+  <div data-screen-label="Converting" style="max-width: 640px; margin: 0 auto; padding: 22vh 40px 0; text-align: center;">
+    <div style="font-size: 12px; letter-spacing: 0.3em; color: #b78f3a; text-transform: uppercase;">{{ phaseLabel }}</div>
+    <div style="margin-top: 24px; font-family: 'Newsreader', Georgia, serif; font-style: italic; font-weight: 500; font-size: clamp(34px, 5vw, 54px); color: #ece1cf; line-height: 1.1;">{{ progressBig }}</div>
+    <div style="margin-top: 40px; height: 2px; background: #221c14; border-radius: 1px; overflow: hidden;">
+      <div style="height: 100%; background: #d8a942; transition: width 0.25s ease; width: {{ pct }}%;"></div>
+    </div>
+    <div style="margin-top: 20px; font-size: 11.5px; color: #5f574a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ progressDetail }}</div>
+    <button type="button" onClick="{{ cancelConvert }}" style="margin-top: 44px; background: transparent; border: 1px solid #3a2f1a; color: #8c8170; border-radius: 6px; padding: 10px 22px; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; cursor: pointer; transition: all 0.18s ease;" style-hover="border-color: #d8a942; color: #ece1cf;">Cancel</button>
+  </div>
+  </sc-if>
+
+  <!-- ============ VAULT ============ -->
+  <sc-if value="{{ isVault }}" hint-placeholder-val="{{ false }}">
+  <div data-screen-label="Vault" style="height: 100vh; display: flex; flex-direction: column;">
+
+    <div style="flex-shrink: 0; display: flex; align-items: center; gap: 20px; padding: 15px 26px; border-bottom: 1px solid #221c14; background: rgba(15,12,9,0.95);">
+      <button type="button" onClick="{{ resetClick }}" style="font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #8c8170; background: transparent; border: none; cursor: pointer; padding: 6px 0; white-space: nowrap;" style-hover="color: #d8a942;">← New archive</button>
+      <div style="font-family: 'Newsreader', Georgia, serif; font-style: italic; font-weight: 500; font-size: 21px; color: #ece1cf; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ vaultTitle }}</div>
+      <div style="flex: 1;"></div>
+      <div style="font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #5f574a; white-space: nowrap;">{{ vaultCount }}</div>
+      <button type="button" onClick="{{ download }}" style="background: #d8a942; color: #0f0c09; border: none; border-radius: 6px; padding: 11px 20px; font-size: 11px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; cursor: pointer; transition: all 0.18s ease; white-space: nowrap;" style-hover="background: #e6bb58; transform: translateY(-1px);">{{ downloadLabel }}</button>
+    </div>
+
+    <div style="flex: 1; display: flex; min-height: 0;">
+
+      <div style="width: 300px; flex-shrink: 0; border-right: 1px solid #221c14; display: flex; flex-direction: column; min-height: 0; background: #110d08;">
+        <div style="padding: 16px 16px 12px;">
+          <input type="text" class="fld" value="{{ search }}" onChange="{{ onSearch }}" placeholder="Search notes…" style="width: 100%;">
+        </div>
+        <div style="flex: 1; overflow-y: auto; padding: 0 8px 16px; display: flex; flex-direction: column; gap: 1px;">
+          <sc-for list="{{ sideItems }}" as="it" hint-placeholder-count="10">
+            <button type="button" class="opt" onClick="{{ it.onClick }}" style="{{ it.style }}">{{ it.label }}</button>
+          </sc-for>
+          <sc-if value="{{ hasMore }}" hint-placeholder-val="{{ false }}">
+            <div style="padding: 14px 12px; font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: #463f33; line-height: 1.7;">{{ moreLabel }}</div>
+          </sc-if>
+        </div>
+      </div>
+
+      <div ref="{{ mainRef }}" style="flex: 1; overflow-y: auto; min-width: 0;" onClick="{{ onBodyClick }}">
+        <div style="max-width: 760px; margin: 0 auto; padding: 48px 44px 130px;">
+          <sc-if value="{{ hasBack }}" hint-placeholder-val="{{ false }}">
+            <button type="button" onClick="{{ goBack }}" style="margin-bottom: 26px; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #8c8170; background: transparent; border: none; cursor: pointer; padding: 4px 0;" style-hover="color: #d8a942;">← Back</button>
+          </sc-if>
+          <sc-if value="{{ hasNote }}" hint-placeholder-val="{{ true }}">
+            <header style="padding-bottom: 26px; margin-bottom: 38px; border-bottom: 1px solid #221c14;">
+              <h1 style="font-family: 'Newsreader', Georgia, serif; font-style: italic; font-weight: 500; color: #ece1cf; font-size: clamp(32px, 4.6vw, 48px); line-height: 1.08; letter-spacing: -0.015em; text-wrap: pretty;">{{ noteTitle }}</h1>
+            </header>
+            {{ noteBody }}
+          </sc-if>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;showFrontmatter&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Conversion&quot;}
+}">
+class Component extends DCLogic {
+  state = {
+    view: 'landing',
+    dragOver: false,
+    error: '',
+    fileName: '',
+    fileSize: 0,
+    meta: null,
+    includeImages: true,
+    maxArticles: '',
+    prog: { phase: 'Converting articles', done: 0, total: 0, detail: '' },
+    current: '',
+    history: [],
+    search: '',
+    zipping: false,
+  };
+
+  fileRef = React.createRef();
+  mainRef = React.createRef();
+
+  fmtBytes(n) {
+    if (!n) return '0 B';
+    const u = ['B', 'KB', 'MB', 'GB'];
+    let i = 0;
+    while (n >= 1024 && i < u.length - 1) { n /= 1024; i++; }
+    return (i === 0 ? n : n.toFixed(1)) + ' ' + u[i];
+  }
+  fmtNum(n) { return (n || 0).toLocaleString('en-US'); }
+  esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
+  reset = () => {
+    this.reader = null;
+    this.vault = null;
+    if (this._blobUrls) for (const u of this._blobUrls.values()) URL.revokeObjectURL(u);
+    this._blobUrls = new Map();
+    this._mdCache = new Map();
+    this.setState({ view: 'landing', error: '', meta: null, current: '', history: [], search: '', fileName: '', zipping: false });
+  };
+
+  pickFile = () => { if (this.fileRef.current) this.fileRef.current.click(); };
+  onFilePick = (e) => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) this.loadFile(f); };
+  onDragOver = (e) => { e.preventDefault(); if (!this.state.dragOver) this.setState({ dragOver: true }); };
+  onDragLeave = () => { this.setState({ dragOver: false }); };
+  onDrop = (e) => { e.preventDefault(); this.setState({ dragOver: false }); const f = e.dataTransfer.files && e.dataTransfer.files[0]; if (f) this.loadFile(f); };
+
+  async loadFile(file) {
+    if (!/\.zim$/i.test(file.name)) { this.setState({ error: 'That doesn\u2019t look like a .zim file \u2014 pick a Kiwix archive ending in .zim.' }); return; }
+    this.setState({ view: 'opening', error: '', fileName: file.name, fileSize: file.size });
+    try {
+      const r = new ZimVault.ZimReader(file);
+      await r.open();
+      const meta = await r.getMetadata();
+      this.reader = r;
+      this.setState({ view: 'inspect', meta });
+    } catch (err) {
+      this.setState({ view: 'landing', error: 'Could not read archive \u2014 ' + err.message });
+    }
+  }
+
+  toggleImages = () => this.setState((s) => ({ includeImages: !s.includeImages }));
+  onMaxArticles = (e) => this.setState({ maxArticles: e.target.value.replace(/[^\d]/g, '') });
+
+  startConvert = async () => {
+    const max = parseInt(this.state.maxArticles, 10) || 0;
+    this._cancel = false;
+    this.setState({ view: 'converting', error: '', prog: { phase: 'Converting articles', done: 0, total: 0, detail: '' } });
+    let last = 0;
+    try {
+      const vault = await ZimVault.convert(this.reader, {
+        includeImages: this.state.includeImages,
+        maxArticles: max,
+        frontmatter: this.props.showFrontmatter ?? true,
+        isCancelled: () => this._cancel,
+      }, (p) => {
+        const now = Date.now();
+        if (now - last > 90 || p.done === p.total) { last = now; this.setState({ prog: p }); }
+      });
+      if (this._cancel || !vault) { this.setState({ view: 'inspect' }); return; }
+      if (!vault.notes.size) { this.setState({ view: 'inspect', error: 'No HTML articles were found in this archive.' }); return; }
+      this.vault = vault;
+      this._mdCache = new Map();
+      this._blobUrls = new Map();
+      const first = vault.mainNote && vault.notes.has(vault.mainNote) ? vault.mainNote : vault.order[0];
+      this.setState({ view: 'vault', current: first, history: [], search: '', zipping: false });
+    } catch (err) {
+      this.setState({ view: 'inspect', error: 'Conversion failed \u2014 ' + err.message });
+    }
+  };
+  cancelConvert = () => { this._cancel = true; };
+
+  openNote = (name, push) => {
+    if (!this.vault || !this.vault.notes.has(name) || name === this.state.current) return;
+    const h = push === false ? this.state.history : [...this.state.history, this.state.current];
+    this.setState({ current: name, history: h }, () => { if (this.mainRef.current) this.mainRef.current.scrollTop = 0; });
+  };
+  goBack = () => {
+    const h = [...this.state.history];
+    const prev = h.pop();
+    if (prev) this.setState({ current: prev, history: h }, () => { if (this.mainRef.current) this.mainRef.current.scrollTop = 0; });
+  };
+  onBodyClick = (e) => {
+    const a = e.target.closest && e.target.closest('a[data-wl]');
+    if (a) { e.preventDefault(); this.openNote(a.getAttribute('data-wl')); return; }
+    const ext = e.target.closest && e.target.closest('.prose a[href]');
+    if (ext) { ext.setAttribute('target', '_blank'); ext.setAttribute('rel', 'noopener'); }
+  };
+  onSearch = (e) => this.setState({ search: e.target.value });
+
+  blobUrl(name) {
+    const at = this.vault.attachments.get(name);
+    if (!at) return '';
+    if (!this._blobUrls.has(name)) this._blobUrls.set(name, URL.createObjectURL(new Blob([at.data], { type: at.mime || 'application/octet-stream' })));
+    return this._blobUrls.get(name);
+  }
+
+  renderMd(name) {
+    if (this._mdCache.has(name)) return this._mdCache.get(name);
+    const note = this.vault.notes.get(name);
+    if (!note) return '';
+    let md = note.md.replace(/^---\n[\s\S]*?\n---\n+/, '');
+    const segs = md.split(/(```[\s\S]*?```)/);
+    for (let i = 0; i < segs.length; i += 2) {
+      if (segs[i] === undefined) continue;
+      segs[i] = segs[i].replace(/(!?)\[\[([^\]\|\n]+?)(?:\|([^\]\n]+?))?\]\]/g, (m, bang, target, alias) => {
+        target = target.trim();
+        if (bang) {
+          const u = this.blobUrl(target);
+          return u ? '<img src="' + u + '" alt="' + this.esc(target) + '">' : '';
+        }
+        const label = this.esc(alias || target);
+        if (this.vault.notes.has(target)) return '<a href="#" data-wl="' + this.esc(target) + '">' + label + '</a>';
+        return '<span class="wl-missing">' + label + '</span>';
+      });
+    }
+    let html;
+    try { html = marked.parse(segs.join(''), { async: false }); }
+    catch (e) { html = '<pre>' + this.esc(md) + '</pre>'; }
+    if (this._mdCache.size > 40) this._mdCache.clear();
+    this._mdCache.set(name, html);
+    return html;
+  }
+
+  vaultName() {
+    const t = (this.state.meta && this.state.meta.title) || this.state.fileName.replace(/\.zim$/i, '');
+    return ZimVault.sanitizeName(t) || 'vault';
+  }
+
+  download = () => {
+    if (this.state.zipping || !this.vault) return;
+    this.setState({ zipping: true });
+    const root = this.vaultName();
+    const files = {};
+    for (const [name, note] of this.vault.notes) files[root + '/' + name + '.md'] = fflate.strToU8(note.md);
+    for (const [name, at] of this.vault.attachments) files[root + '/attachments/' + name] = [at.data, { level: 0 }];
+    fflate.zip(files, { level: 6 }, (err, out) => {
+      if (err) { this.setState({ zipping: false, error: 'Zip failed \u2014 ' + err.message }); return; }
+      const url = URL.createObjectURL(new Blob([out], { type: 'application/zip' }));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = root + '.zip';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
+      this.setState({ zipping: false });
+    });
+  };
+
+  renderVals() {
+    const s = this.state;
+    const vals = {
+      isLanding: s.view === 'landing',
+      isOpening: s.view === 'opening',
+      isInspect: s.view === 'inspect',
+      isConverting: s.view === 'converting',
+      isVault: s.view === 'vault',
+      hasError: !!s.error,
+      errorMsg: s.error,
+      dragOver: s.dragOver,
+      fileRef: this.fileRef,
+      mainRef: this.mainRef,
+      pickFile: this.pickFile,
+      onFilePick: this.onFilePick,
+      onDragOver: this.onDragOver,
+      onDragLeave: this.onDragLeave,
+      onDrop: this.onDrop,
+      resetClick: this.reset,
+      openLabel: s.fileName,
+      openDetail: this.fmtBytes(s.fileSize) + ' \u00b7 parsing directory',
+      toggleImages: this.toggleImages,
+      onMaxArticles: this.onMaxArticles,
+      maxArticles: s.maxArticles,
+      startConvert: this.startConvert,
+      cancelConvert: this.cancelConvert,
+      onSearch: this.onSearch,
+      search: s.search,
+      download: this.download,
+      downloadLabel: s.zipping ? 'Zipping\u2026' : 'Download vault \u00b7 .zip',
+      goBack: this.goBack,
+      onBodyClick: this.onBodyClick,
+      hasBack: s.history.length > 0,
+    };
+
+    // inspect
+    const counts = this.reader ? this.reader.counts : null;
+    vals.zimTitle = (s.meta && s.meta.title) || s.fileName;
+    vals.zimDesc = (s.meta && s.meta.description) || '';
+    vals.hasDesc = !!vals.zimDesc;
+    vals.metaRows = counts ? [
+      { k: 'File size', v: this.fmtBytes(counts.size) },
+      { k: 'Articles', v: this.fmtNum(counts.articles) },
+      { k: 'Media entries', v: this.fmtNum(counts.media) },
+      { k: 'Redirects', v: this.fmtNum(counts.redirects) },
+      { k: 'Language', v: (s.meta && s.meta.language) || '\u2014' },
+      { k: 'Created', v: (s.meta && s.meta.date) || '\u2014' },
+    ] : [];
+    const btnBase = 'display:inline-flex;align-items:center;gap:9px;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;padding:11px 18px;border-radius:6px;cursor:pointer;background:transparent;transition:all 0.18s ease;font-family:JetBrains Mono,monospace;';
+    vals.imagesBtnStyle = s.includeImages
+      ? btnBase + 'border:1px solid #d8a942;color:#ece1cf;'
+      : btnBase + 'border:1px solid #29221a;color:#8c8170;';
+    vals.imagesLabel = s.includeImages ? 'Images \u2014 included' : 'Images \u2014 skipped';
+    const lim = parseInt(s.maxArticles, 10) || 0;
+    const nArt = counts ? (lim > 0 ? Math.min(lim, counts.articles) : counts.articles) : 0;
+    vals.convertHint = this.fmtNum(nArt) + ' articles \u2192 markdown notes';
+
+    // converting
+    const p = s.prog;
+    vals.phaseLabel = p.phase;
+    vals.pct = p.total ? Math.round((p.done / p.total) * 100) : 0;
+    vals.progressBig = p.total ? this.fmtNum(p.done) + ' / ' + this.fmtNum(p.total) : '\u2026';
+    vals.progressDetail = p.detail || '\u00a0';
+
+    // vault
+    if (s.view === 'vault' && this.vault) {
+      vals.vaultTitle = this.vaultName();
+      vals.vaultCount = this.fmtNum(this.vault.notes.size) + ' notes \u00b7 ' + this.fmtNum(this.vault.attachments.size) + ' attachments';
+      const q = s.search.trim().toLowerCase();
+      const filtered = q ? this.vault.order.filter((n) => n.toLowerCase().includes(q)) : this.vault.order;
+      const CAP = 400;
+      const shown = filtered.slice(0, CAP);
+      const itemBase = 'text-align:left;background:transparent;border:none;cursor:pointer;font-size:12.5px;line-height:1.5;padding:8px 12px;border-radius:4px;transition:all 0.15s ease;overflow-wrap:anywhere;font-family:JetBrains Mono,monospace;';
+      vals.sideItems = shown.map((n) => ({
+        label: n,
+        onClick: () => this.openNote(n),
+        style: n === s.current
+          ? itemBase + 'color:#ece1cf;background:#1a150e;box-shadow:inset 2px 0 0 #d8a942;'
+          : itemBase + 'color:#8c8170;',
+      }));
+      vals.hasMore = filtered.length > CAP;
+      vals.moreLabel = 'Showing ' + CAP + ' of ' + this.fmtNum(filtered.length) + ' \u2014 refine your search';
+      const note = this.vault.notes.get(s.current);
+      vals.hasNote = !!note;
+      vals.noteTitle = note ? note.title : '';
+      vals.noteBody = note
+        ? React.createElement('div', { className: 'prose', dangerouslySetInnerHTML: { __html: this.renderMd(s.current) } })
+        : null;
+    } else {
+      vals.vaultTitle = ''; vals.vaultCount = ''; vals.sideItems = []; vals.hasMore = false;
+      vals.moreLabel = ''; vals.hasNote = false; vals.noteTitle = ''; vals.noteBody = null;
+    }
+    return vals;
+  }
+}
+</script>
+</body>
+</html>
