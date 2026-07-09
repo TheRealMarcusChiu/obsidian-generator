@@ -63,12 +63,11 @@
 
   <!-- ============ LANDING ============ -->
   <sc-if value="{{ isLanding }}" hint-placeholder-val="{{ true }}">
-  <div data-screen-label="Landing" style="max-width: 980px; margin: 0 auto; padding: 0 40px 90px;">
+  <div data-screen-label="Landing" style="max-width: 780px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 60px 40px;">
 
-    <header style="padding: 92px 0 54px;">
-      <div style="font-size: 12px; letter-spacing: 0.34em; color: #d8a942; text-transform: uppercase; margin-bottom: 36px;">ZIM archive → Obsidian vault</div>
-      <h1 style="font-family: 'Newsreader', Georgia, serif; font-style: italic; font-weight: 500; color: #ece1cf; font-size: clamp(46px, 7.2vw, 92px); line-height: 1.0; letter-spacing: -0.015em; text-wrap: pretty;">An entire encyclopedia, rewritten as a vault.</h1>
-      <p style="margin-top: 30px; max-width: 62ch; font-size: 14px; line-height: 1.85; color: #8c8170;">Drop any Kiwix .zim archive — Wikipedia, Stack Exchange, wikis — and it is parsed, decompressed and rewritten as Markdown notes with [[wikilinks]], entirely inside this tab. Nothing is ever uploaded.</p>
+    <header style="padding: 0 0 44px; text-align: center;">
+      <div style="font-size: 12px; letter-spacing: 0.34em; color: #d8a942; text-transform: uppercase; margin-bottom: 28px;">100% in-browser · nothing uploaded</div>
+      <h1 style="font-family: 'Newsreader', Georgia, serif; font-style: italic; font-weight: 500; color: #ece1cf; font-size: clamp(40px, 6vw, 72px); line-height: 1.02; letter-spacing: -0.015em; text-wrap: pretty;">ZIM archive → Obsidian vault</h1>
     </header>
 
     <sc-if value="{{ hasError }}" hint-placeholder-val="{{ false }}">
@@ -81,32 +80,12 @@
       </sc-if>
       <div style="font-family: 'Newsreader', Georgia, serif; font-style: italic; font-size: 62px; line-height: 1; color: rgba(216,169,66,0.3);">.zim</div>
       <div style="margin-top: 22px; font-family: 'Newsreader', Georgia, serif; font-style: italic; font-size: 27px; color: #ece1cf;">Drop your archive here</div>
-      <div style="margin-top: 13px; font-size: 11.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #5f574a;">or click to browse — read locally, never uploaded</div>
+      <div style="margin-top: 13px; font-size: 11.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #5f574a;">or click to browse</div>
+      <div style="margin-top: 20px; font-size: 11.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #5f574a;">no .zim yet? <a href="https://browse.library.kiwix.org/#lang=eng" target="_blank" rel="noopener" onClick="{{ stopClick }}" style="color: #b78f3a; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgba(183,143,58,0.4);" style-hover="color: #d8a942;">Kiwix library →</a></div>
     </div>
     <input type="file" accept=".zim" ref="{{ fileRef }}" onChange="{{ onFilePick }}" style="display: none;">
 
-    <div style="margin-top: 60px; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 22px;">
-      <div style="position: relative; background: #14100b; border: 1px solid #29221a; border-radius: 6px; padding: 26px 24px 24px; overflow: hidden;">
-        <span style="position: absolute; right: 14px; top: 6px; font-family: 'Newsreader', Georgia, serif; font-style: italic; font-weight: 500; font-size: 46px; line-height: 1; color: rgba(216,169,66,0.14);">01</span>
-        <h3 style="font-family: 'Newsreader', Georgia, serif; font-weight: 500; color: #ece1cf; font-size: 21px; line-height: 1.22;">Parsed in the browser</h3>
-        <p style="margin-top: 12px; font-size: 12.5px; line-height: 1.8; color: #8c8170;">The ZIM directory, clusters and blobs are read straight off your disk and decompressed in-tab. No servers, no API calls.</p>
-      </div>
-      <div style="position: relative; background: #14100b; border: 1px solid #29221a; border-radius: 6px; padding: 26px 24px 24px; overflow: hidden;">
-        <span style="position: absolute; right: 14px; top: 6px; font-family: 'Newsreader', Georgia, serif; font-style: italic; font-weight: 500; font-size: 46px; line-height: 1; color: rgba(216,169,66,0.14);">02</span>
-        <h3 style="font-family: 'Newsreader', Georgia, serif; font-weight: 500; color: #ece1cf; font-size: 21px; line-height: 1.22;">Markdown, with wikilinks</h3>
-        <p style="margin-top: 12px; font-size: 12.5px; line-height: 1.8; color: #8c8170;">Every article becomes a note; internal links become [[wikilinks]] Obsidian understands. Images ride along as attachments.</p>
-      </div>
-      <div style="position: relative; background: #14100b; border: 1px solid #29221a; border-radius: 6px; padding: 26px 24px 24px; overflow: hidden;">
-        <span style="position: absolute; right: 14px; top: 6px; font-family: 'Newsreader', Georgia, serif; font-style: italic; font-weight: 500; font-size: 46px; line-height: 1; color: rgba(216,169,66,0.14);">03</span>
-        <h3 style="font-family: 'Newsreader', Georgia, serif; font-weight: 500; color: #ece1cf; font-size: 21px; line-height: 1.22;">Browse, then download</h3>
-        <p style="margin-top: 12px; font-size: 12.5px; line-height: 1.8; color: #8c8170;">Read the vault right here — wikilinks are clickable — then take it home as a zip and open it in Obsidian.</p>
-      </div>
-    </div>
-
-    <footer style="margin-top: 84px; padding-top: 28px; border-top: 1px solid #221c14; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;">
-      <div style="font-size: 11.5px; letter-spacing: 0.18em; text-transform: uppercase; color: #5f574a;">No uploads · No servers · Everything stays on this machine</div>
-      <div style="font-size: 11.5px; letter-spacing: 0.18em; text-transform: uppercase; color: #b78f3a;">zim → obsidian</div>
-    </footer>
+    <footer style="margin-top: 44px; text-align: center; font-size: 11.5px; letter-spacing: 0.18em; text-transform: uppercase; color: #5f574a;">Markdown notes · [[wikilinks]] · download as zip</footer>
   </div>
   </sc-if>
 
@@ -273,6 +252,7 @@ class Component extends DCLogic {
   };
 
   pickFile = () => { if (this.fileRef.current) this.fileRef.current.click(); };
+  stopClick = (e) => { e.stopPropagation(); };
   onFilePick = (e) => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) this.loadFile(f); };
   onDragOver = (e) => { e.preventDefault(); if (!this.state.dragOver) this.setState({ dragOver: true }); };
   onDragLeave = () => { this.setState({ dragOver: false }); };
@@ -415,6 +395,7 @@ class Component extends DCLogic {
       fileRef: this.fileRef,
       mainRef: this.mainRef,
       pickFile: this.pickFile,
+      stopClick: this.stopClick,
       onFilePick: this.onFilePick,
       onDragOver: this.onDragOver,
       onDragLeave: this.onDragLeave,
