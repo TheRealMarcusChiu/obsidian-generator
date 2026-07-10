@@ -3,9 +3,17 @@
    Depends on: fzstd (zstd clusters), xzwasm or xz-decompress (xz clusters), TurndownService (+gfm). */
 (function () {
   'use strict';
+  const window = globalThis; // also runs inside a Web Worker
   const td8 = new TextDecoder('utf-8');
 
   function decodeSafe(s) { try { return decodeURIComponent(s); } catch (e) { return s; } }
+
+  // Yield to the event loop without setTimeout — MessageChannel is not throttled
+  // in background tabs, so conversion keeps running when the user switches away.
+  const _yieldChannel = new MessageChannel();
+  let _yieldResolve = null;
+  _yieldChannel.port1.onmessage = () => { const r = _yieldResolve; _yieldResolve = null; if (r) r(); };
+  function nextTick() { return new Promise((r) => { _yieldResolve = r; _yieldChannel.port2.postMessage(0); }); }
 
   function sanitizeName(s) {
     s = (s || '')
@@ -24,7 +32,7 @@
   // ---------- xz decompression (UMD global or dynamic-import fallback) ----------
   let xzMod = null;
   async function getXz() {
-    if (window.xzwasm && window.xzwasm.XzReadableStream) return window.xzwasm;
+    if (globalThis.xzwasm && globalThis.xzwasm.XzReadableStream) return globalThis.xzwasm;
     if (!xzMod) {
       xzMod = import('https://cdn.jsdelivr.net/npm/xz-decompress@0.2.1/+esm')
         .then((m) => (m && m.XzReadableStream) ? m : (m && m.default && m.default.XzReadableStream) ? m.default : null)
@@ -160,8 +168,8 @@
       let data = raw.subarray(1);
       if (comp === 4) data = await xzDecompress(data);
       else if (comp === 5) {
-        if (!window.fzstd) throw new Error('zstd decompressor not loaded');
-        data = window.fzstd.decompress(data);
+        if (!globalThis.fzstd) throw new Error('zstd decompressor not loaded');
+        data = globalThis.fzstd.decompress(data);
       } else if (comp === 2 || comp === 3) throw new Error('legacy ' + (comp === 2 ? 'zlib' : 'bzip2') + ' clusters are not supported');
       const dv = new DataView(data.buffer, data.byteOffset, data.byteLength);
       const osize = extended ? 8 : 4;
@@ -262,7 +270,7 @@
 
     // turndown
     const td = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced', hr: '---', bulletListMarker: '-', emDelimiter: '*' });
-    if (window.turndownPluginGfm) td.use(window.turndownPluginGfm.gfm);
+    if (window.turndownPluginGfm || globalThis.turndownPluginGfm) td.use((window.turndownPluginGfm || globalThis.turndownPluginGfm).gfm);
     td.addRule('wikilink', {
       filter: (n) => n.nodeName === 'A' && !!n.getAttribute('data-wl'),
       replacement: (content, n) => {
@@ -340,7 +348,7 @@
       done++;
       if (performance.now() - lastYield > 40) {
         progress('Converting articles', done, total, name);
-        await new Promise((r) => setTimeout(r, 0));
+        await nextTick();
         lastYield = performance.now();
       }
     }
@@ -358,7 +366,7 @@
       ad++;
       if (performance.now() - lastYield > 40) {
         progress('Extracting images', ad, refs.length, attOf.get(t.i) || '');
-        await new Promise((r) => setTimeout(r, 0));
+        await nextTick();
         lastYield = performance.now();
       }
     }
@@ -372,5 +380,5 @@
     return { notes, attachments, order, mainNote };
   }
 
-  window.ZimVault = { ZimReader, convert, sanitizeName };
+  globalThis.ZimVault = { ZimReader, convert, sanitizeName };
 })();

@@ -359,13 +359,20 @@ class Component extends DCLogic {
     };
     try {
       let vault;
-      if (!this.reader && this._worker && !this._workerFailed) {
-        const r = await this.workerCall({ type: 'convert', opts });
-        vault = r ? this.hydrateVault(r) : null;
-      } else {
-        if (!this.reader) throw new Error('archive is no longer open \u2014 pick the file again');
-        vault = await ZimVault.convert(this.reader, Object.assign({}, opts, { isCancelled: () => this._cancel }), this.onProgress);
-      }
+      const run = async () => {
+        if (!this.reader && this._worker && !this._workerFailed) {
+          const r = await this.workerCall({ type: 'convert', opts });
+          vault = r ? this.hydrateVault(r) : null;
+        } else {
+          if (!this.reader) throw new Error('archive is no longer open \u2014 pick the file again');
+          vault = await ZimVault.convert(this.reader, Object.assign({}, opts, { isCancelled: () => this._cancel }), this.onProgress);
+        }
+      };
+      // Holding a Web Lock exempts this tab from Chromium/Brave background-tab
+      // freezing (Memory/Battery Saver), so conversion survives long stays in
+      // an unfocused tab.
+      if (navigator.locks && navigator.locks.request) await navigator.locks.request('zim-conversion', run);
+      else await run();
       document.title = this._baseTitle || document.title;
       if (this._cancel || !vault) { this.setState({ view: 'inspect' }); return; }
       if (!vault.notes.size) { this.setState({ view: 'inspect', error: 'No HTML articles were found in this archive.' }); return; }
