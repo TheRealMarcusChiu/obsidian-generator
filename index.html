@@ -8,6 +8,15 @@
 <body>
 <x-dc>
 <helmet>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-WKSFZQ4K6F"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-WKSFZQ4K6F');
+</script>
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -279,6 +288,7 @@ class Component extends DCLogic {
   startConvert = async () => {
     const max = parseInt(this.state.maxArticles, 10) || 0;
     this._cancel = false;
+    if (!this._baseTitle) this._baseTitle = document.title;
     this.setState({ view: 'converting', error: '', prog: { phase: 'Converting articles', done: 0, total: 0, detail: '' } });
     let last = 0;
     try {
@@ -289,8 +299,13 @@ class Component extends DCLogic {
         isCancelled: () => this._cancel,
       }, (p) => {
         const now = Date.now();
-        if (now - last > 90 || p.done === p.total) { last = now; this.setState({ prog: p }); }
+        if (now - last > 90 || p.done === p.total) {
+          last = now;
+          this.setState({ prog: p });
+          if (p.total) document.title = Math.round((p.done / p.total) * 100) + '% \u00b7 ' + p.phase;
+        }
       });
+      document.title = this._baseTitle || document.title;
       if (this._cancel || !vault) { this.setState({ view: 'inspect' }); return; }
       if (!vault.notes.size) { this.setState({ view: 'inspect', error: 'No HTML articles were found in this archive.' }); return; }
       this.vault = vault;
@@ -299,6 +314,7 @@ class Component extends DCLogic {
       const first = vault.mainNote && vault.notes.has(vault.mainNote) ? vault.mainNote : vault.order[0];
       this.setState({ view: 'vault', current: first, history: [], search: '', zipping: false });
     } catch (err) {
+      document.title = this._baseTitle || document.title;
       this.setState({ view: 'inspect', error: 'Conversion failed \u2014 ' + err.message });
     }
   };
