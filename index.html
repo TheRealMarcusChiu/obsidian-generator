@@ -255,6 +255,8 @@ class Component extends DCLogic {
   reset = () => {
     this.reader = null;
     this.vault = null;
+    this._counts = null;
+    this._file = null;
     if (this._blobUrls) for (const u of this._blobUrls.values()) URL.revokeObjectURL(u);
     this._blobUrls = new Map();
     this._mdCache = new Map();
@@ -271,16 +273,75 @@ class Component extends DCLogic {
   async loadFile(file) {
     if (!/\.zim$/i.test(file.name)) { this.setState({ error: 'That doesn\u2019t look like a .zim file \u2014 pick a Kiwix archive ending in .zim.' }); return; }
     this.setState({ view: 'opening', error: '', fileName: file.name, fileSize: file.size });
+    this._file = file;
+    const w = this.getWorker();
+    if (w) {
+      try {
+        const r = await this.workerCall({ type: 'open', file });
+        this.reader = null; // conversion will run in the worker
+        this._counts = r.counts;
+        this.setState({ view: 'inspect', meta: r.meta });
+        return;
+      } catch (err) {
+        if (err.archive) { this.setState({ view: 'landing', error: 'Could not read archive \u2014 ' + err.message }); return; }
+        // worker infrastructure failed \u2014 fall through to in-page path
+      }
+    }
     try {
       const r = new ZimVault.ZimReader(file);
       await r.open();
       const meta = await r.getMetadata();
       this.reader = r;
+      this._counts = r.counts;
       this.setState({ view: 'inspect', meta });
     } catch (err) {
       this.setState({ view: 'landing', error: 'Could not read archive \u2014 ' + err.message });
     }
   }
+
+  // ---- background conversion worker ----
+  getWorker() {
+    if (this._workerFailed) return null;
+    if (!this._worker) {
+      try {
+        this._worker = new Worker('zim-worker.js', { type: 'module' });
+        this._worker.onmessage = (e) => this.onWorkerMsg(e.data);
+        this._worker.onerror = () => this.failWorker(new Error('worker failed to start'));
+      } catch (e) { this._workerFailed = true; this._worker = null; }
+    }
+    return this._worker;
+  }
+  failWorker(err) {
+    this._workerFailed = true;
+    if (this._worker) { try { this._worker.terminate(); } catch (e) {} this._worker = null; }
+    const p = this._pending; this._pending = null;
+    if (p) p.reject(err);
+  }
+  workerCall(msg) {
+    return new Promise((resolve, reject) => {
+      this._pending = { resolve, reject };
+      this._worker.postMessage(msg);
+    });
+  }
+  onWorkerMsg(m) {
+    if (m.type === 'progress') { this.onProgress(m.p); return; }
+    if (m.type === 'boot-failed') { this.failWorker(new Error(m.message)); return; }
+    const p = this._pending;
+    if (!p) return;
+    this._pending = null;
+    if (m.type === 'error') { const e = new Error(m.message); e.archive = !!m.archive; p.reject(e); }
+    else if (m.type === 'cancelled') p.resolve(null);
+    else p.resolve(m);
+  }
+  onProgress = (p) => {
+    const now = Date.now();
+    if (now - this._lastProg > 90 || p.done === p.total) {
+      this._lastProg = now;
+      this.setState({ prog: p });
+      if (p.total) document.title = Math.round((p.done / p.total) * 100) + '% \u00b7 ' + p.phase;
+    }
+  };
+  _lastProg = 0;
 
   toggleImages = () => this.setState((s) => ({ includeImages: !s.includeImages }));
   onMaxArticles = (e) => this.setState({ maxArticles: e.target.value.replace(/[^\d]/g, '') });
@@ -290,21 +351,21 @@ class Component extends DCLogic {
     this._cancel = false;
     if (!this._baseTitle) this._baseTitle = document.title;
     this.setState({ view: 'converting', error: '', prog: { phase: 'Converting articles', done: 0, total: 0, detail: '' } });
-    let last = 0;
+    this._lastProg = 0;
+    const opts = {
+      includeImages: this.state.includeImages,
+      maxArticles: max,
+      frontmatter: this.props.showFrontmatter ?? true,
+    };
     try {
-      const vault = await ZimVault.convert(this.reader, {
-        includeImages: this.state.includeImages,
-        maxArticles: max,
-        frontmatter: this.props.showFrontmatter ?? true,
-        isCancelled: () => this._cancel,
-      }, (p) => {
-        const now = Date.now();
-        if (now - last > 90 || p.done === p.total) {
-          last = now;
-          this.setState({ prog: p });
-          if (p.total) document.title = Math.round((p.done / p.total) * 100) + '% \u00b7 ' + p.phase;
-        }
-      });
+      let vault;
+      if (!this.reader && this._worker && !this._workerFailed) {
+        const r = await this.workerCall({ type: 'convert', opts });
+        vault = r ? this.hydrateVault(r) : null;
+      } else {
+        if (!this.reader) throw new Error('archive is no longer open \u2014 pick the file again');
+        vault = await ZimVault.convert(this.reader, Object.assign({}, opts, { isCancelled: () => this._cancel }), this.onProgress);
+      }
       document.title = this._baseTitle || document.title;
       if (this._cancel || !vault) { this.setState({ view: 'inspect' }); return; }
       if (!vault.notes.size) { this.setState({ view: 'inspect', error: 'No HTML articles were found in this archive.' }); return; }
@@ -318,7 +379,13 @@ class Component extends DCLogic {
       this.setState({ view: 'inspect', error: 'Conversion failed \u2014 ' + err.message });
     }
   };
-  cancelConvert = () => { this._cancel = true; };
+  hydrateVault(r) {
+    const notes = new Map(Object.entries(r.notes));
+    const attachments = new Map();
+    for (const [name, mime, buf] of r.attachments) attachments.set(name, { data: new Uint8Array(buf), mime });
+    return { notes, attachments, order: r.order, mainNote: r.mainNote };
+  }
+  cancelConvert = () => { this._cancel = true; if (this._worker) this._worker.postMessage({ type: 'cancel' }); };
 
   openNote = (name, push) => {
     if (!this.vault || !this.vault.notes.has(name) || name === this.state.current) return;
@@ -435,7 +502,7 @@ class Component extends DCLogic {
     };
 
     // inspect
-    const counts = this.reader ? this.reader.counts : null;
+    const counts = this._counts || (this.reader ? this.reader.counts : null);
     vals.zimTitle = (s.meta && s.meta.title) || s.fileName;
     vals.zimDesc = (s.meta && s.meta.description) || '';
     vals.hasDesc = !!vals.zimDesc;
